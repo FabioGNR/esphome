@@ -4,8 +4,11 @@
 namespace esphome {
 namespace is31fl3731 {
 
+static const uint8_t ISSI_REG_CONFIG_PICTUREMODE = 0x00;
+
 static const uint8_t ISSI_COMMANDREGISTER = 0xFD;
 static const uint8_t ISSI_REG_PICTUREFRAME = 0x01;
+static const uint8_t ISSI_REG_SHUTDOWN = 0x0A;
 static const uint8_t ISSI_BANK_FUNCTIONREG = 0x0B;
 
 static const char *const TAG = "is31fl3731.display";
@@ -14,7 +17,15 @@ void IS31FL3731Component::set_writer(is31fl3731_writer_t &&writer) {
   this->writer_ = writer;
 }
 
-void IS31FL3731Component::setup() { ESP_LOGCONFIG(TAG, "Setting up IS31FL3731..."); }
+void IS31FL3731Component::setup() {
+  ESP_LOGCONFIG(TAG, "Setting up IS31FL3731...");
+  
+  select_bank(ISSI_BANK_FUNCTIONREG);
+  write_byte(ISSI_REG_SHUTDOWN, 0x01);
+
+  select_bank(ISSI_BANK_FUNCTIONREG);
+  write_byte(ISSI_REG_SHUTDOWN, ISSI_REG_CONFIG_PICTUREMODE);
+}
 
 void IS31FL3731Component::dump_config() {
   ESP_LOGCONFIG(TAG, "IS31FL3731:");
