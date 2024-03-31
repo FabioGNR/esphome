@@ -4,6 +4,7 @@ from esphome.components import i2c, display
 
 from esphome.const import (
     CONF_ID,
+    CONF_LAMBDA,
 )
 
 DEPENDENCIES = ["i2c"]
@@ -16,6 +17,9 @@ IS31FL3731Component = is31fl3731_ns.class_(
     display.Display,
     cg.PollingComponent,
 )
+
+IS31FL3731ComponentRef = IS31FL3731Component.operator("ref")
+
 
 CONFIG_SCHEMA = (
     display.BASIC_DISPLAY_SCHEMA.extend(
@@ -34,3 +38,9 @@ async def to_code(config):
     await cg.register_component(var, config)
     await i2c.register_i2c_device(var, config)
     await display.register_display(var, config)
+
+    if CONF_LAMBDA in config:
+        lambda_ = await cg.process_lambda(
+            config[CONF_LAMBDA], [(IS31FL3731ComponentRef, "it")], return_type=cg.void
+        )
+        cg.add(var.set_writer(lambda_))

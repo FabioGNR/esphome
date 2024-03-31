@@ -10,9 +10,11 @@ static const uint8_t ISSI_BANK_FUNCTIONREG = 0x0B;
 
 static const char *const TAG = "is31fl3731.display";
 
-void IS31FL3731Component::setup() {
-  ESP_LOGCONFIG(TAG, "Setting up BME680...");
+void IS31FL3731Component::set_writer(is31fl3731_writer_t &&writer) {
+  this->writer_ = writer;
 }
+
+void IS31FL3731Component::setup() { ESP_LOGCONFIG(TAG, "Setting up IS31FL3731..."); }
 
 void IS31FL3731Component::dump_config() {
   ESP_LOGCONFIG(TAG, "IS31FL3731:");
@@ -30,6 +32,9 @@ void IS31FL3731Component::loop() {
 
 void IS31FL3731Component::update() {
   //
+  if(writer_.has_value()) {
+    (*writer_)(*this);
+  }
 }
 
 display::DisplayType IS31FL3731Component::get_display_type() {
