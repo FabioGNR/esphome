@@ -22,7 +22,7 @@ IS31FL3731ComponentRef = IS31FL3731Component.operator("ref")
 
 
 CONFIG_SCHEMA = (
-    display.BASIC_DISPLAY_SCHEMA.extend(
+    display.FULL_DISPLAY_SCHEMA.extend(
         {
             cv.GenerateID(): cv.declare_id(IS31FL3731Component),
         }
