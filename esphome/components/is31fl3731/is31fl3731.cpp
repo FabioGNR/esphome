@@ -12,6 +12,8 @@ static const uint8_t ISSI_REG_PICTUREFRAME = 0x01;
 static const uint8_t ISSI_REG_SHUTDOWN = 0x0A;
 static const uint8_t ISSI_BANK_FUNCTIONREG = 0x0B;
 
+static const uint8_t NUM_FRAMES = 8;
+
 static const char *const TAG = "is31fl3731.display";
 
 void IS31FL3731Component::set_writer(is31fl3731_writer_t &&writer) {
@@ -27,8 +29,10 @@ void IS31FL3731Component::setup() {
   select_bank(ISSI_BANK_FUNCTIONREG);
   write_byte(ISSI_REG_CONFIG, ISSI_REG_CONFIG_PICTUREMODE);
 
-  select_bank(current_frame_);
-  power_leds(true);
+  for (uint8_t frame = 0; frame < NUM_FRAMES; frame++) {
+    select_bank(frame);
+    power_leds(true);
+  }
 }
 
 void IS31FL3731Component::dump_config() {
@@ -47,7 +51,7 @@ void IS31FL3731Component::loop() {
 void IS31FL3731Component::update() {
   if(writer_.has_value()) {
     ESP_LOGI(TAG, "Call writer");
-    if (current_frame_ == 7) {
+    if (current_frame_ == (NUM_FRAMES - 1)) {
       current_frame_ = 0;
     } else {
       current_frame_++;
