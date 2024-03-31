@@ -45,7 +45,9 @@ void IS31FL3731Component::loop() {
 
 void IS31FL3731Component::update() {
   //
+  
   if(writer_.has_value()) {
+    ESP_LOGI(TAG, "Call writer");
     select_bank(0);
     (*writer_)(*this);
   }
@@ -57,6 +59,8 @@ display::DisplayType IS31FL3731Component::get_display_type() {
 }
 
 void IS31FL3731Component::fill(Color color) {
+  ESP_LOGI(TAG, "Fill with color %d", color.w);
+
   select_bank(0);
   auto fill_buffer = std::array<uint8_t, 24>();
   fill_buffer.fill(color.w);
@@ -82,6 +86,7 @@ int IS31FL3731Component::get_width_internal() {
 }
 
 void IS31FL3731Component::display_frame(uint8_t bank) {
+  ESP_LOGI(TAG, "Display frame %d", bank);
   select_bank(ISSI_BANK_FUNCTIONREG); // TODO: check result
 
   const bool result = write_byte(ISSI_REG_PICTUREFRAME, bank);
@@ -91,6 +96,7 @@ void IS31FL3731Component::display_frame(uint8_t bank) {
 }
 
 void IS31FL3731Component::select_bank(uint8_t bank) {
+  ESP_LOGI(TAG, "Select bank %d", bank);
   const bool result = write_byte(ISSI_COMMANDREGISTER, bank);
   if (!result) {
     ESP_LOGE(TAG, "Failed to select bank %d", bank);
@@ -98,6 +104,7 @@ void IS31FL3731Component::select_bank(uint8_t bank) {
 }
 
 void IS31FL3731Component::set_led_pwm(uint8_t lednum, uint8_t pwm, uint8_t bank) {
+  ESP_LOGI(TAG, "Set LED PWM %d %d %d", lednum, pwm, bank);
   if (lednum >= 144)
     return;
 
@@ -110,6 +117,7 @@ void IS31FL3731Component::set_led_pwm(uint8_t lednum, uint8_t pwm, uint8_t bank)
 }
 
 void IS31FL3731Component::power_leds(bool on) {
+  ESP_LOGI(TAG, "Power LEDs %d", on);
   for (uint8_t i = 0; i <= 0x11; i++) {
     write_byte(i, on ? 0xff : 0x00); // each 8 LEDs on
   }
