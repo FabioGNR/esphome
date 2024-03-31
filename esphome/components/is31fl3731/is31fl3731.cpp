@@ -7,6 +7,7 @@ namespace is31fl3731 {
 static const uint8_t ISSI_REG_CONFIG_PICTUREMODE = 0x00;
 
 static const uint8_t ISSI_COMMANDREGISTER = 0xFD;
+static const uint8_t ISSI_REG_CONFIG = 0x00;
 static const uint8_t ISSI_REG_PICTUREFRAME = 0x01;
 static const uint8_t ISSI_REG_SHUTDOWN = 0x0A;
 static const uint8_t ISSI_BANK_FUNCTIONREG = 0x0B;
@@ -19,13 +20,12 @@ void IS31FL3731Component::set_writer(is31fl3731_writer_t &&writer) {
 
 void IS31FL3731Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up IS31FL3731...");
-  ESP_LOGI(TAG, "setup()");
   
   select_bank(ISSI_BANK_FUNCTIONREG);
   write_byte(ISSI_REG_SHUTDOWN, 0x01);
 
   select_bank(ISSI_BANK_FUNCTIONREG);
-  write_byte(ISSI_REG_SHUTDOWN, ISSI_REG_CONFIG_PICTUREMODE);
+  write_byte(ISSI_REG_CONFIG, ISSI_REG_CONFIG_PICTUREMODE);
 
   select_bank(0);
   power_leds(true);
@@ -45,12 +45,6 @@ void IS31FL3731Component::loop() {
 }
 
 void IS31FL3731Component::update() {
-  //
-  if (!forced_setup_) {
-    forced_setup_ = true;
-    setup();
-  }
-  
   if(writer_.has_value()) {
     ESP_LOGI(TAG, "Call writer");
     select_bank(0);
