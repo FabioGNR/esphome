@@ -46,6 +46,10 @@ void IS31FL3731Component::loop() {
 
 void IS31FL3731Component::update() {
   //
+  if (!forced_setup_) {
+    forced_setup_ = true;
+    setup();
+  }
   
   if(writer_.has_value()) {
     ESP_LOGI(TAG, "Call writer");
