@@ -37,7 +37,6 @@ class IS31FL3731Component : public display::Display,
   void power_leds(bool on);
 
   optional<is31fl3731_writer_t> writer_{};
-  bool forced_setup_ {};
 };
 
 }  // namespace is31fl3731
