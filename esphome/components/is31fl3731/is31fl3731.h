@@ -15,6 +15,8 @@ using is31fl3731_writer_t = std::function<void(IS31FL3731Component &)>;
 class IS31FL3731Component : public display::Display,
                             public i2c::I2CDevice {
  public:
+  void set_width(uint32_t width) { this->width_ = width; }
+  void set_height(uint32_t height) { this->height_ = height; }
   void set_writer(is31fl3731_writer_t &&writer);
 
   void setup() override;
@@ -35,6 +37,8 @@ class IS31FL3731Component : public display::Display,
   void power_leds(bool on);
 
   optional<is31fl3731_writer_t> writer_{};
+  uint32_t width_{0};
+  uint32_t height_{0};
   uint8_t current_frame_{};
 };
 

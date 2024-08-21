@@ -4,15 +4,22 @@
 namespace esphome {
 namespace is31fl3731 {
 
-static const uint8_t ISSI_REG_CONFIG_PICTUREMODE = 0x00;
+static const uint8_t COMMANDREGISTER = 0xFD;
+static const uint8_t REG_CONFIG = 0x00;
+static const uint8_t REG_PICTUREFRAME = 0x01;
+static const uint8_t REG_SHUTDOWN = 0x0A;
+static const uint8_t BANK_FUNCTIONREG = 0x0B;
 
-static const uint8_t ISSI_COMMANDREGISTER = 0xFD;
-static const uint8_t ISSI_REG_CONFIG = 0x00;
-static const uint8_t ISSI_REG_PICTUREFRAME = 0x01;
-static const uint8_t ISSI_REG_SHUTDOWN = 0x0A;
-static const uint8_t ISSI_BANK_FUNCTIONREG = 0x0B;
+static const uint8_t CFG_CONFIG_PICTUREMODE = 0x00;
+static const uint8_t CFG_SHUTDOWN_NORMAL = 0x01;
+
+static const uint8_t REG_LED_CONTROL_START = 0x00;
+static const uint8_t REG_LED_CONTROL_END = 0x11;
+static const uint8_t REG_LED_PWD_START = 0x24;
+static const uint8_t REG_LED_PWD_END = 0xB3;
 
 static const uint8_t NUM_FRAMES = 8;
+static const uint8_t NUM_LEDS = 144;
 
 static const char *const TAG = "is31fl3731.display";
 
@@ -23,11 +30,12 @@ void IS31FL3731Component::set_writer(is31fl3731_writer_t &&writer) {
 void IS31FL3731Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up IS31FL3731...");
   
-  select_bank(ISSI_BANK_FUNCTIONREG);
-  write_byte(ISSI_REG_SHUTDOWN, 0x01);
+  select_bank(BANK_FUNCTIONREG);
 
-  select_bank(ISSI_BANK_FUNCTIONREG);
-  write_byte(ISSI_REG_CONFIG, ISSI_REG_CONFIG_PICTUREMODE);
+  write_byte(REG_SHUTDOWN, CFG_SHUTDOWN_NORMAL);
+
+  select_bank(BANK_FUNCTIONREG);
+  write_byte(REG_CONFIG, CFG_CONFIG_PICTUREMODE);
 
   for (uint8_t frame = 0; frame < NUM_FRAMES; frame++) {
     select_bank(frame);
@@ -72,11 +80,17 @@ void IS31FL3731Component::fill(Color color) {
   ESP_LOGV(TAG, "Fill with color %d", color.w);
 
   select_bank(current_frame_);
-  auto fill_buffer = std::array<uint8_t, 24>();
+
+  // TODO: why is this split into 6 iterations?
+  const uint8_t iterations = 6;
+  const uint8_t leds_per_iteration = NUM_LEDS / iterations;
+
+  auto fill_buffer = std::array<uint8_t, leds_per_iteration>();
   fill_buffer.fill(color.w);
 
-  for (uint8_t i = 0; i < 6; i++) {
-    const bool written = write_bytes(0x24 + i * 24, fill_buffer);
+  for (uint8_t i = 0; i < iterations; i++) {
+    const auto pwm_reg = REG_LED_PWD_START + i * leds_per_iteration;
+    const bool written = write_bytes(pwm_reg, fill_buffer);
     if (!written) {
       ESP_LOGE(TAG, "Failed to fill line %d", i);
     }
@@ -106,17 +120,17 @@ void IS31FL3731Component::draw_pixel_at(int x, int y, Color color) {
   this->set_led_pwm(lednum, color.w, current_frame_);
 }
 
-int IS31FL3731Component::get_height_internal() { return 9; }
+int IS31FL3731Component::get_height_internal() { return height_; }
 
 int IS31FL3731Component::get_width_internal() {
-  return 16;
+  return width_;
 }
 
 void IS31FL3731Component::display_frame(uint8_t bank) {
   ESP_LOGV(TAG, "Display frame %d", bank);
-  select_bank(ISSI_BANK_FUNCTIONREG);
+  select_bank(BANK_FUNCTIONREG);
 
-  const bool result = write_byte(ISSI_REG_PICTUREFRAME, bank);
+  const bool result = write_byte(REG_PICTUREFRAME, bank);
   if (!result) {
     ESP_LOGE(TAG, "Failed to display frame %d", bank);
   }
@@ -124,19 +138,19 @@ void IS31FL3731Component::display_frame(uint8_t bank) {
 
 void IS31FL3731Component::select_bank(uint8_t bank) {
   ESP_LOGV(TAG, "Select bank %d", bank);
-  write_byte(ISSI_COMMANDREGISTER, bank);
+  write_byte(COMMANDREGISTER, bank);
 }
 
 void IS31FL3731Component::set_led_pwm(uint8_t lednum, uint8_t pwm, uint8_t bank) {
   ESP_LOGV(TAG, "Set LED PWM %d %d %d", lednum, pwm, bank);
-  if (lednum >= 144) {
+  if (lednum >= NUM_LEDS) {
     ESP_LOGE(TAG, "Failed to set LED PWM %d, lednum out of range", lednum);
     return;
   }
 
   select_bank(bank);
 
-  const bool result = this->write_byte(0x24 + lednum, pwm);
+  const bool result = this->write_byte(REG_LED_PWD_START + lednum, pwm);
   if (!result) {
     ESP_LOGE(TAG, "Failed to set LED PWM %d", lednum);
   }
@@ -144,8 +158,8 @@ void IS31FL3731Component::set_led_pwm(uint8_t lednum, uint8_t pwm, uint8_t bank)
 
 void IS31FL3731Component::power_leds(bool on) {
   ESP_LOGV(TAG, "Power LEDs %d", on);
-  for (uint8_t i = 0; i <= 0x11; i++) {
-    write_byte(i, on ? 0xff : 0x00); // each 8 LEDs on
+  for (uint8_t i = REG_LED_CONTROL_START; i <= REG_LED_CONTROL_END; i++) {
+    write_byte(i, on ? 0xff : 0x00); // each 8 LEDs on/off
   }
 }
 
