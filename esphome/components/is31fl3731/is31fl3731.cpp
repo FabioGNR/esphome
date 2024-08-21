@@ -27,7 +27,7 @@ void IS31FL3731Component::setup() {
   select_bank(ISSI_BANK_FUNCTIONREG);
   write_byte(ISSI_REG_CONFIG, ISSI_REG_CONFIG_PICTUREMODE);
 
-  select_bank(0);
+  select_bank(current_frame_);
   power_leds(true);
 }
 
@@ -47,10 +47,15 @@ void IS31FL3731Component::loop() {
 void IS31FL3731Component::update() {
   if(writer_.has_value()) {
     ESP_LOGI(TAG, "Call writer");
-    select_bank(0);
+    if (current_frame_ == 7) {
+      current_frame_ = 0;
+    } else {
+      current_frame_++;
+    }
+    select_bank(current_frame_);
     (*writer_)(*this);
   }
-  display_frame(0);
+  display_frame(current_frame_);
 }
 
 display::DisplayType IS31FL3731Component::get_display_type() {
@@ -60,7 +65,7 @@ display::DisplayType IS31FL3731Component::get_display_type() {
 void IS31FL3731Component::fill(Color color) {
   ESP_LOGI(TAG, "Fill with color %d", color.w);
 
-  select_bank(0);
+  select_bank(current_frame_);
   auto fill_buffer = std::array<uint8_t, 24>();
   fill_buffer.fill(color.w);
 
@@ -75,7 +80,7 @@ void IS31FL3731Component::fill(Color color) {
 void IS31FL3731Component::draw_pixel_at(int x, int y, Color color) {
   const uint8_t lednum = x + y * get_width_internal();
 
-  this->set_led_pwm(lednum, color.w, 0);
+  this->set_led_pwm(lednum, color.w, current_frame_);
 }
 
 int IS31FL3731Component::get_height_internal() { return 9; }
