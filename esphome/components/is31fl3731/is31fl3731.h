@@ -7,9 +7,15 @@
 namespace esphome {
 namespace is31fl3731 {
 
+class IS31FL3731Component;
+
+using is31fl3731_writer_t = std::function<void(IS31FL3731Component &)>;
+
+
 class IS31FL3731Component : public display::Display,
                             public i2c::I2CDevice {
  public:
+  void set_writer(is31fl3731_writer_t &&writer);
 
   // ========== INTERNAL METHODS ==========
   // (In most use cases you won't need these)
@@ -28,6 +34,8 @@ class IS31FL3731Component : public display::Display,
   void display_frame(uint8_t bank);
   void select_bank(uint8_t bank);
   void set_led_pwm(uint8_t lednum, uint8_t pwm, uint8_t bank);
+
+  optional<is31fl3731_writer_t> writer_{};
 };
 
 }  // namespace is31fl3731
