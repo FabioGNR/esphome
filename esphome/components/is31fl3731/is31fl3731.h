@@ -17,8 +17,6 @@ class IS31FL3731Component : public display::Display,
  public:
   void set_writer(is31fl3731_writer_t &&writer);
 
-  // ========== INTERNAL METHODS ==========
-  // (In most use cases you won't need these)
   void setup() override;
   void dump_config() override;
   float get_setup_priority() const override;

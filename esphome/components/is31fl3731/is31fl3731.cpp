@@ -114,7 +114,7 @@ int IS31FL3731Component::get_width_internal() {
 
 void IS31FL3731Component::display_frame(uint8_t bank) {
   ESP_LOGV(TAG, "Display frame %d", bank);
-  select_bank(ISSI_BANK_FUNCTIONREG); // TODO: check result
+  select_bank(ISSI_BANK_FUNCTIONREG);
 
   const bool result = write_byte(ISSI_REG_PICTUREFRAME, bank);
   if (!result) {
@@ -124,10 +124,7 @@ void IS31FL3731Component::display_frame(uint8_t bank) {
 
 void IS31FL3731Component::select_bank(uint8_t bank) {
   ESP_LOGV(TAG, "Select bank %d", bank);
-  const bool result = write_byte(ISSI_COMMANDREGISTER, bank);
-  if (!result) {
-    ESP_LOGE(TAG, "Failed to select bank %d", bank);
-  }
+  write_byte(ISSI_COMMANDREGISTER, bank);
 }
 
 void IS31FL3731Component::set_led_pwm(uint8_t lednum, uint8_t pwm, uint8_t bank) {
@@ -137,7 +134,7 @@ void IS31FL3731Component::set_led_pwm(uint8_t lednum, uint8_t pwm, uint8_t bank)
     return;
   }
 
-  this->select_bank(bank); // TODO: check result
+  select_bank(bank);
 
   const bool result = this->write_byte(0x24 + lednum, pwm);
   if (!result) {
