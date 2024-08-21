@@ -18,7 +18,7 @@ IS31FL3731Component = is31fl3731_ns.class_(
 )
 
 CONFIG_SCHEMA = (
-    cv.Schema(
+    display.BASIC_DISPLAY_SCHEMA.extend(
         {
             cv.GenerateID(): cv.declare_id(IS31FL3731Component),
         }
