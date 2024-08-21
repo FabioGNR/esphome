@@ -78,6 +78,23 @@ void IS31FL3731Component::fill(Color color) {
 }
 
 void IS31FL3731Component::draw_pixel_at(int x, int y, Color color) {
+  switch (this->rotation_) {
+    case display::DISPLAY_ROTATION_0_DEGREES:
+      break;
+    case display::DISPLAY_ROTATION_90_DEGREES:
+      std::swap(x, y);
+      x = get_width_internal() - x - 1;
+      break;
+    case display::DISPLAY_ROTATION_180_DEGREES:
+      x = get_width_internal() - x - 1;
+      y = get_height_internal() - y - 1;
+      break;
+    case display::DISPLAY_ROTATION_270_DEGREES:
+      std::swap(x, y);
+      y = get_height_internal() - y - 1;
+      break;
+  }
+
   const uint8_t lednum = x + y * get_width_internal();
 
   this->set_led_pwm(lednum, color.w, current_frame_);
