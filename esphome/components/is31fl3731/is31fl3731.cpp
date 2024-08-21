@@ -57,6 +57,8 @@ void IS31FL3731Component::update() {
       current_frame_++;
     }
     select_bank(current_frame_);
+
+    fill(display::COLOR_OFF);
     (*writer_)(*this);
   }
   display_frame(current_frame_);
