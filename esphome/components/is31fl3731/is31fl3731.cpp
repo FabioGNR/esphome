@@ -130,8 +130,10 @@ void IS31FL3731Component::select_bank(uint8_t bank) {
 
 void IS31FL3731Component::set_led_pwm(uint8_t lednum, uint8_t pwm, uint8_t bank) {
   ESP_LOGV(TAG, "Set LED PWM %d %d %d", lednum, pwm, bank);
-  if (lednum >= 144)
+  if (lednum >= 144) {
+    ESP_LOGE(TAG, "Failed to set LED PWM %d, lednum out of range", lednum);
     return;
+  }
 
   this->select_bank(bank); // TODO: check result
 
