@@ -35,7 +35,7 @@ void IS31FL3731Component::dump_config() {
   }
 }
 
-float IS31FL3731Component::get_setup_priority() const { return setup_priority::DATA; }
+float IS31FL3731Component::get_setup_priority() const { return setup_priority::PROCESSOR; }
 
 void IS31FL3731Component::loop() {
   display_frame(0);
