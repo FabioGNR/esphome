@@ -38,14 +38,15 @@ void IS31FL3731Component::dump_config() {
 float IS31FL3731Component::get_setup_priority() const { return setup_priority::PROCESSOR; }
 
 void IS31FL3731Component::loop() {
-  display_frame(0);
 }
 
 void IS31FL3731Component::update() {
   //
   if(writer_.has_value()) {
+    select_bank(0);
     (*writer_)(*this);
   }
+  display_frame(0);
 }
 
 display::DisplayType IS31FL3731Component::get_display_type() {
