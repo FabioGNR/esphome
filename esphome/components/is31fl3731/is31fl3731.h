@@ -34,6 +34,7 @@ class IS31FL3731Component : public display::Display,
   void display_frame(uint8_t bank);
   void select_bank(uint8_t bank);
   void set_led_pwm(uint8_t lednum, uint8_t pwm, uint8_t bank);
+  void power_leds(bool on);
 
   optional<is31fl3731_writer_t> writer_{};
 };

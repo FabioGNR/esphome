@@ -25,6 +25,9 @@ void IS31FL3731Component::setup() {
 
   select_bank(ISSI_BANK_FUNCTIONREG);
   write_byte(ISSI_REG_SHUTDOWN, ISSI_REG_CONFIG_PICTUREMODE);
+
+  select_bank(0);
+  power_leds(true);
 }
 
 void IS31FL3731Component::dump_config() {
@@ -59,7 +62,10 @@ void IS31FL3731Component::fill(Color color) {
   fill_buffer.fill(color.w);
 
   for (uint8_t i = 0; i < 6; i++) {
-    write_bytes(0x24 + i * 24, fill_buffer);
+    const bool written = write_bytes(0x24 + i * 24, fill_buffer);
+    if (!written) {
+      ESP_LOGE(TAG, "Failed to fill line %d", i);
+    }
   }
 }
 
@@ -100,6 +106,12 @@ void IS31FL3731Component::set_led_pwm(uint8_t lednum, uint8_t pwm, uint8_t bank)
   const bool result = this->write_byte(0x24 + lednum, pwm);
   if (!result) {
     ESP_LOGE(TAG, "Failed to set LED PWM %d", lednum);
+  }
+}
+
+void IS31FL3731Component::power_leds(bool on) {
+  for (uint8_t i = 0; i <= 0x11; i++) {
+    write_byte(i, on ? 0xff : 0x00); // each 8 LEDs on
   }
 }
 
